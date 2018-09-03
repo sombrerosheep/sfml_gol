@@ -8,7 +8,7 @@
 
 
 // 60 fps
-const float max_frame_time = 1.f / 60.f;
+const float max_frame_time = 1.f / 2.f;
 float frame_time = 0;
 
 // Seeded constants
@@ -46,7 +46,7 @@ struct Tile {
 std::vector<Tile> game_board(tile_rows * tile_cols);
 
 int getIndexOfPosition(int x, int y, int rowWidth = tile_cols) {
-  return y * rowWidth + x;
+  return (y * rowWidth) + x;
 }
 
 sf::Vector2f getPositionOfIndex(int index) {
@@ -56,12 +56,113 @@ sf::Vector2f getPositionOfIndex(int index) {
   );
 }
 
+int safeX(int x) {
+  if (x < 0) {
+    return tile_cols - 1;
+  }
+
+  if (x >= tile_cols) {
+    return 0;
+  }
+
+  return x;
+}
+
+int safeY(int y) {
+  if (y < 0) {
+    return tile_rows - 1;
+  }
+
+  if (y >= tile_rows) {
+    return 0;
+  }
+
+  return y;
+}
+
+struct Neighbors {
+  Neighbors(int a, int d) {
+    alive = a;
+    dead = d;
+  }
+  int alive;
+  int dead;
+};
+
+Neighbors getNeighbors(sf::Vector2f coords) {
+  int x = coords.x;
+  int y = coords.y;
+  
+  int alive = 0;
+
+  int ul = getIndexOfPosition(safeX(x - 1), safeY(y - 1));
+  int uc = getIndexOfPosition(safeX(x), safeY(y - 1));
+  int ur = getIndexOfPosition(safeX(x + 1), safeY(y - 1));
+  int l = getIndexOfPosition(safeX(x - 1), safeY(y));
+  int r = getIndexOfPosition(safeX(x + 1), safeY(y));
+  int ll = getIndexOfPosition(safeX(x - 1), safeY(y + 1));
+  int lc = getIndexOfPosition(safeX(x), safeY(y + 1));
+  int lr = getIndexOfPosition(safeX(x + 1), safeY(y + 1));
+
+  if (game_board[ul].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[uc].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[ur].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[l].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[r].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[ll].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[lc].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+  if (game_board[lr].previous == TILE_STATE::ALIVE) {
+    alive++;
+  }
+
+  return Neighbors(alive, 8 - alive);
+}
+
 void Input() {
 
 }
 
 void Update(float frameTimeInMilli) {
-  
+  for (int i = 0; i < game_board.size(); i++) {
+    Neighbors n = getNeighbors(getPositionOfIndex(i));
+    if (game_board[i].previous == TILE_STATE::ALIVE) {
+      // Any live cell with fewer than two live neighbors dies, as if by under population.
+      if (n.alive < 2) {
+        game_board[i].current = TILE_STATE::DEAD;
+      }
+      // Any live cell with two or three live neighbors lives on to the next generation.
+      else if (n.alive == 2 || n.alive == 3) {
+        game_board[i].current = TILE_STATE::ALIVE;
+      }
+      // Any live cell with more than three live neighbors dies, as if by overpopulation.
+      else if (n.alive > 3) {
+        game_board[i].current = TILE_STATE::DEAD;
+      }
+    }
+    // Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
+    else if (n.alive == 3) {
+      game_board[i].current = TILE_STATE::ALIVE;
+    }
+  }
+
+  // Migrate state for next turn
+  for (int i = 0; i < game_board.size(); i++) {
+    game_board[i].previous = game_board[i].current;
+  }
 }
 
 void Draw(sf::RenderWindow& window) {
