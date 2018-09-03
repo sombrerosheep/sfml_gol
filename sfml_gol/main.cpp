@@ -14,7 +14,7 @@ float frame_time = 0;
 // Seeded constants
 const int height = 600;
 const int width = 800;
-const int tile_size = 4;
+const int tile_size = 10;
 const sf::Color GRID_COLOR{ 48, 48, 48 };
 
 // calculated constants
@@ -22,8 +22,8 @@ const int tile_rows = height / tile_size;
 const int tile_cols = width / tile_size;
 
 // Gridlines
-const int grid_vert_verticies = (tile_cols + 1) * 2;
-const int grid_horz_verticies = (tile_rows + 1) * 2;
+const int grid_vert_verticies = tile_cols * 2;
+const int grid_horz_verticies = tile_rows * 2;
 sf::Vertex grid_vert_lines[grid_vert_verticies];
 sf::Vertex grid_horz_lines[grid_horz_verticies];
 
@@ -49,6 +49,13 @@ int getIndexOfPosition(int x, int y, int rowWidth = tile_cols) {
   return y * rowWidth + x;
 }
 
+sf::Vector2f getPositionOfIndex(int index) {
+  return sf::Vector2f(
+    index % tile_cols,
+    index / tile_cols
+  );
+}
+
 void Input() {
 
 }
@@ -64,6 +71,15 @@ void Draw(sf::RenderWindow& window) {
   // Draw the grid
   window.draw(grid_horz_lines, grid_horz_verticies, sf::Lines);
   window.draw(grid_vert_lines, grid_vert_verticies, sf::Lines);
+
+  for (int i = 0; i < game_board.size(); i++) {
+    if (game_board[i].current == TILE_STATE::ALIVE) {
+      sf::RectangleShape rect(sf::Vector2f(tile_size, tile_size));
+      sf::Vector2f pos = getPositionOfIndex(i);
+      rect.setPosition(pos.x * tile_size, pos.y * tile_size);
+      window.draw(rect);
+    }
+  }
 
 #ifdef DEBUG_DRAW
   sf::Font debugFont;
@@ -88,16 +104,16 @@ void Draw(sf::RenderWindow& window) {
 void init() {
   // create grid
   for (int i = 0; i < grid_horz_verticies; i += 2) {
-    grid_horz_lines[i].position = sf::Vector2f(0, i * tile_size);
+    grid_horz_lines[i].position = sf::Vector2f(0, i * (tile_size / 2));
     grid_horz_lines[i].color = GRID_COLOR;
-    grid_horz_lines[i + 1].position = sf::Vector2f(width, i * tile_size);
+    grid_horz_lines[i + 1].position = sf::Vector2f(width, i * (tile_size / 2));
     grid_horz_lines[i + 1].color = GRID_COLOR;
   }
 
   for (int i = 0; i < grid_vert_verticies; i += 2) {
-    grid_vert_lines[i].position = sf::Vector2f(i * tile_size, 0);
+    grid_vert_lines[i].position = sf::Vector2f(i * (tile_size / 2), 0);
     grid_vert_lines[i].color = GRID_COLOR;
-    grid_vert_lines[i + 1].position = sf::Vector2f(i * tile_size, height);
+    grid_vert_lines[i + 1].position = sf::Vector2f(i * (tile_size / 2), height);
     grid_vert_lines[i + 1].color = GRID_COLOR;
   }
 
@@ -107,11 +123,11 @@ void init() {
   }
 
   // Seed the board
-  game_board[getIndexOfPosition(200, 100)].current = TILE_STATE::ALIVE;
-  game_board[getIndexOfPosition(201, 101)].current = TILE_STATE::ALIVE;
-  game_board[getIndexOfPosition(200, 102)].current = TILE_STATE::ALIVE;
-  game_board[getIndexOfPosition(200, 103)].current = TILE_STATE::ALIVE;
-  game_board[getIndexOfPosition(201, 99)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(20, 10)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(21, 11)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(20, 12)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(20, 13)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(21, 9)].current = TILE_STATE::ALIVE;
 }
   
 void main(char** argv, int arg) {
