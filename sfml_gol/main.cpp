@@ -229,6 +229,12 @@ void init() {
   game_board[getIndexOfPosition(20, 12)].current = TILE_STATE::ALIVE;
   game_board[getIndexOfPosition(20, 13)].current = TILE_STATE::ALIVE;
   game_board[getIndexOfPosition(21, 9)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(21, 14)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(21, 16)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(20, 15)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(22, 16)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(23, 16)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(24, 15)].current = TILE_STATE::ALIVE;
 }
   
 void main(char** argv, int arg) {
