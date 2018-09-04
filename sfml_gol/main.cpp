@@ -11,6 +11,10 @@
 const float max_frame_time = 1.f / 2.f;
 float frame_time = 0;
 
+// game state
+bool running = false;
+int generation = 0;
+
 // Seeded constants
 const int height = 600;
 const int width = 800;
@@ -137,6 +141,8 @@ void Input() {
 }
 
 void Update(float frameTimeInMilli) {
+  generation++;
+
   for (int i = 0; i < game_board.size(); i++) {
     Neighbors n = getNeighbors(getPositionOfIndex(i));
     if (game_board[i].previous == TILE_STATE::ALIVE) {
@@ -183,20 +189,22 @@ void Draw(sf::RenderWindow& window) {
   }
 
 #ifdef DEBUG_DRAW
-  sf::Font debugFont;
-  sf::Text fpsText;
+  sf::Font statFont;
+  sf::Text statText;
  
-  debugFont.loadFromFile("rm_typerighter_medium.ttf");
-  fpsText.setFont(debugFont);
+  statFont.loadFromFile("rm_typerighter_medium.ttf");
+  statText.setFont(statFont);
+
+  const char* runMsg = running ? "Running (Press P to pause)" : "Paused (Press P to resume)";
 
   std::stringstream sstream;
-  sstream << (int)(1 / frame_time) << " FPS";
+  sstream << (int)(1 / frame_time) << " FPS\n" << runMsg << "\nGeneration: " << generation;
 
-  fpsText.setString(sstream.str());
-  fpsText.setOrigin(0, 0);
-  fpsText.setPosition(15, 5);
+  statText.setString(sstream.str());
+  statText.setOrigin(0, 0);
+  statText.setPosition(15, 5);
 
-  window.draw(fpsText);
+  window.draw(statText);
 #endif
 
   window.display();
@@ -261,15 +269,20 @@ void main(char** argv, int arg) {
         if (event.key.code == sf::Keyboard::Escape) {
           window.close();
         }
+        else if (event.key.code == sf::Keyboard::P) {
+          running = !running;
+        }
+
       }
     }
 
     // maintain consistent frametime
     if (frame_time > max_frame_time) {
       Input();
-      Update(delta.asMilliseconds());
+      if (running) {
+        Update(delta.asMilliseconds());
+      }
       Draw(window);
-
       frame_time = 0;
     }
 
