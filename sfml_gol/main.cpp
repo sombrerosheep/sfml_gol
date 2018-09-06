@@ -4,16 +4,16 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Text.hpp>
 
-#define DEBUG_DRAW
-
 
 // 60 fps
-const float max_frame_time = 1.f / 2.f;
+const float max_frame_time = 1.f / 10.f;
 float frame_time = 0;
 
 // game state
 bool running = false;
+bool show_stats = true;
 int generation = 0;
+int population = 0;
 
 // Seeded constants
 const int height = 600;
@@ -99,37 +99,28 @@ Neighbors getNeighbors(sf::Vector2f coords) {
   
   int alive = 0;
 
-  int ul = getIndexOfPosition(safeX(x - 1), safeY(y - 1));
-  int uc = getIndexOfPosition(safeX(x), safeY(y - 1));
-  int ur = getIndexOfPosition(safeX(x + 1), safeY(y - 1));
-  int l = getIndexOfPosition(safeX(x - 1), safeY(y));
-  int r = getIndexOfPosition(safeX(x + 1), safeY(y));
-  int ll = getIndexOfPosition(safeX(x - 1), safeY(y + 1));
-  int lc = getIndexOfPosition(safeX(x), safeY(y + 1));
-  int lr = getIndexOfPosition(safeX(x + 1), safeY(y + 1));
-
-  if (game_board[ul].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x - 1), safeY(y - 1))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[uc].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x), safeY(y - 1))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[ur].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x + 1), safeY(y - 1))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[l].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x - 1), safeY(y))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[r].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x + 1), safeY(y))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[ll].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x - 1), safeY(y + 1))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[lc].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x), safeY(y + 1))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
-  if (game_board[lr].previous == TILE_STATE::ALIVE) {
+  if (game_board[getIndexOfPosition(safeX(x + 1), safeY(y + 1))].previous == TILE_STATE::ALIVE) {
     alive++;
   }
 
@@ -141,6 +132,7 @@ void Input() {
 }
 
 void Update(float frameTimeInMilli) {
+  population = 0;
   generation++;
 
   for (int i = 0; i < game_board.size(); i++) {
@@ -168,6 +160,9 @@ void Update(float frameTimeInMilli) {
   // Migrate state for next turn
   for (int i = 0; i < game_board.size(); i++) {
     game_board[i].previous = game_board[i].current;
+    if (game_board[i].current == TILE_STATE::ALIVE) {
+      population++;
+    }
   }
 }
 
@@ -188,24 +183,28 @@ void Draw(sf::RenderWindow& window) {
     }
   }
 
-#ifdef DEBUG_DRAW
-  sf::Font statFont;
-  sf::Text statText;
- 
-  statFont.loadFromFile("rm_typerighter_medium.ttf");
-  statText.setFont(statFont);
+  if (show_stats) {
+    sf::Font statFont;
+    sf::Text statText;
 
-  const char* runMsg = running ? "Running (Press P to pause)" : "Paused (Press P to resume)";
+    statFont.loadFromFile("rm_typerighter_medium.ttf");
+    statText.setFont(statFont);
 
-  std::stringstream sstream;
-  sstream << (int)(1 / frame_time) << " FPS\n" << runMsg << "\nGeneration: " << generation;
+    const char* runMsg = running ? "Running (Press P to pause)" : "Paused (Press P to resume)";
 
-  statText.setString(sstream.str());
-  statText.setOrigin(0, 0);
-  statText.setPosition(15, 5);
+    std::stringstream sstream;
+    sstream
+      << (int)(1 / frame_time) << " G/s\n"
+      << runMsg << "\n"
+      << "Population: " << population << "\n"
+      << "Generation: " << generation;
 
-  window.draw(statText);
-#endif
+    statText.setString(sstream.str());
+    statText.setOrigin(0, 0);
+    statText.setPosition(15, 5);
+
+    window.draw(statText);
+  }
 
   window.display();
 }
@@ -243,6 +242,21 @@ void init() {
   game_board[getIndexOfPosition(22, 16)].current = TILE_STATE::ALIVE;
   game_board[getIndexOfPosition(23, 16)].current = TILE_STATE::ALIVE;
   game_board[getIndexOfPosition(24, 15)].current = TILE_STATE::ALIVE;
+
+  game_board[getIndexOfPosition(54, 53)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(54, 54)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(54, 55)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(54, 56)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(58, 50)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(57, 51)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(58, 50)].current = TILE_STATE::ALIVE;
+  game_board[getIndexOfPosition(57, 52)].current = TILE_STATE::ALIVE;
+
+  for (int i = 0; i < game_board.size(); i++) {
+    if (game_board[i].current == TILE_STATE::ALIVE) {
+      population++;
+    }
+  }
 }
   
 void main(char** argv, int arg) {
@@ -272,7 +286,9 @@ void main(char** argv, int arg) {
         else if (event.key.code == sf::Keyboard::P) {
           running = !running;
         }
-
+        else if (event.key.code == sf::Keyboard::S) {
+          show_stats = !show_stats;
+        }
       }
     }
 
