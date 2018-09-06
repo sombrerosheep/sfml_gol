@@ -138,11 +138,6 @@ void Input(sf::Vector2f mouse_position) {
     int gridY = std::floor(mouse_position.y) / tile_size;
 
     game_board[getIndexOfPosition(gridX, gridY)].current = TILE_STATE::ALIVE;
-
-
-    // get location of cursor
-    // get index of x.y
-    // mark tile as alive
   }
 }
 
@@ -211,8 +206,11 @@ void Draw(sf::RenderWindow& window) {
 
     std::stringstream sstream;
     sstream
-      << (int)(std::ceil(1 / frame_time)) << " G/s\n"
       << runMsg << "\n"
+      << "Press I to increase generation speed\n"
+      << "Press O to decrease generation speed\n"
+      << "\n"
+      << (int)(std::ceil(1 / frame_time)) << " G/s\n"
       << "Population: " << population << "\n"
       << "Generation: " << generation;
 
