@@ -5,11 +5,11 @@
 #include <SFML/Graphics/Text.hpp>
 
 
-// 60 fps
-const float max_frame_time = 1.f / 10.f;
 float frame_time = 0;
 
 // game state
+int frames_per_sec = 5;
+float max_frame_time = 1.f / (float)frames_per_sec;
 bool running = false;
 bool show_stats = true;
 int generation = 0;
@@ -194,7 +194,7 @@ void Draw(sf::RenderWindow& window) {
 
     std::stringstream sstream;
     sstream
-      << (int)(1 / frame_time) << " G/s\n"
+      << (int)(std::ceil(1 / frame_time)) << " G/s\n"
       << runMsg << "\n"
       << "Population: " << population << "\n"
       << "Generation: " << generation;
@@ -269,6 +269,7 @@ void main(char** argv, int arg) {
   while (window.isOpen()) {
 
     sf::Time delta = gameClock.restart();
+    max_frame_time = 1.f / (float)frames_per_sec;
     frame_time += delta.asSeconds();
 
     while (window.pollEvent(event)) {
@@ -288,6 +289,15 @@ void main(char** argv, int arg) {
         }
         else if (event.key.code == sf::Keyboard::S) {
           show_stats = !show_stats;
+        }
+        else if (event.key.code == sf::Keyboard::I) {
+          frames_per_sec++;
+        }
+        else if (event.key.code == sf::Keyboard::O) {
+          frames_per_sec--;
+          if (frames_per_sec < 1) {
+            frames_per_sec = 1;
+          }
         }
       }
     }
