@@ -11,6 +11,7 @@ float frame_time = 0;
 int frames_per_sec = 5;
 float max_frame_time = 1.f / (float)frames_per_sec;
 bool running = false;
+bool started = false;
 bool show_stats = true;
 int generation = 0;
 int population = 0;
@@ -127,33 +128,49 @@ Neighbors getNeighbors(sf::Vector2f coords) {
   return Neighbors(alive, 8 - alive);
 }
 
-void Input() {
+void Input(sf::Vector2f mouse_position) {
+  if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+    if (mouse_position.x < 0 || mouse_position.x > width || mouse_position.y < 0 || mouse_position.y > height) {
+      return;
+    }
 
+    int gridX = std::floor(mouse_position.x) / tile_size;
+    int gridY = std::floor(mouse_position.y) / tile_size;
+
+    game_board[getIndexOfPosition(gridX, gridY)].current = TILE_STATE::ALIVE;
+
+
+    // get location of cursor
+    // get index of x.y
+    // mark tile as alive
+  }
 }
 
 void Update(float frameTimeInMilli) {
   population = 0;
   generation++;
 
-  for (int i = 0; i < game_board.size(); i++) {
-    Neighbors n = getNeighbors(getPositionOfIndex(i));
-    if (game_board[i].previous == TILE_STATE::ALIVE) {
-      // Any live cell with fewer than two live neighbors dies, as if by under population.
-      if (n.alive < 2) {
-        game_board[i].current = TILE_STATE::DEAD;
+  if (started) {
+    for (int i = 0; i < game_board.size(); i++) {
+      Neighbors n = getNeighbors(getPositionOfIndex(i));
+      if (game_board[i].previous == TILE_STATE::ALIVE) {
+        // Any live cell with fewer than two live neighbors dies, as if by under population.
+        if (n.alive < 2) {
+          game_board[i].current = TILE_STATE::DEAD;
+        }
+        // Any live cell with two or three live neighbors lives on to the next generation.
+        else if (n.alive == 2 || n.alive == 3) {
+          game_board[i].current = TILE_STATE::ALIVE;
+        }
+        // Any live cell with more than three live neighbors dies, as if by overpopulation.
+        else if (n.alive > 3) {
+          game_board[i].current = TILE_STATE::DEAD;
+        }
       }
-      // Any live cell with two or three live neighbors lives on to the next generation.
-      else if (n.alive == 2 || n.alive == 3) {
+      // Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
+      else if (n.alive == 3) {
         game_board[i].current = TILE_STATE::ALIVE;
       }
-      // Any live cell with more than three live neighbors dies, as if by overpopulation.
-      else if (n.alive > 3) {
-        game_board[i].current = TILE_STATE::DEAD;
-      }
-    }
-    // Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
-    else if (n.alive == 3) {
-      game_board[i].current = TILE_STATE::ALIVE;
     }
   }
 
@@ -285,6 +302,7 @@ void main(char** argv, int arg) {
           window.close();
         }
         else if (event.key.code == sf::Keyboard::P) {
+          started = true;
           running = !running;
         }
         else if (event.key.code == sf::Keyboard::S) {
@@ -304,7 +322,12 @@ void main(char** argv, int arg) {
 
     // maintain consistent frametime
     if (frame_time > max_frame_time) {
-      Input();
+      
+      if (!started) {
+        sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+        Input(mousePosition);
+      }
+      
       if (running) {
         Update(delta.asMilliseconds());
       }
