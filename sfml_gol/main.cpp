@@ -4,12 +4,10 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Text.hpp>
 
-
-float frame_time = 0;
-
 // game state
-int frames_per_sec = 5;
-float max_frame_time = 1.f / (float)frames_per_sec;
+float generation_time = 0;
+int generations_per_sec = 5;
+float max_generation_time = 1.f / (float)generations_per_sec;
 bool running = false;
 bool started = false;
 bool show_stats = true;
@@ -210,7 +208,7 @@ void Draw(sf::RenderWindow& window) {
       << "Press I to increase generation speed\n"
       << "Press O to decrease generation speed\n"
       << "\n"
-      << (int)(std::ceil(1 / frame_time)) << " G/s\n"
+      << generations_per_sec << " G/s\n"
       << "Population: " << population << "\n"
       << "Generation: " << generation;
 
@@ -284,8 +282,8 @@ void main(char** argv, int arg) {
   while (window.isOpen()) {
 
     sf::Time delta = gameClock.restart();
-    max_frame_time = 1.f / (float)frames_per_sec;
-    frame_time += delta.asSeconds();
+    max_generation_time = 1.f / (float)generations_per_sec;
+    generation_time += delta.asSeconds();
 
     while (window.pollEvent(event)) {
       
@@ -307,31 +305,32 @@ void main(char** argv, int arg) {
           show_stats = !show_stats;
         }
         else if (event.key.code == sf::Keyboard::I) {
-          frames_per_sec++;
+          generations_per_sec++;
         }
         else if (event.key.code == sf::Keyboard::O) {
-          frames_per_sec--;
-          if (frames_per_sec < 1) {
-            frames_per_sec = 1;
+          generations_per_sec--;
+          if (generations_per_sec < 1) {
+            generations_per_sec = 1;
           }
         }
       }
     }
 
-    // maintain consistent frametime
-    if (frame_time > max_frame_time) {
-      
-      if (!started) {
-        sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
-        Input(mousePosition);
-      }
-      
+    if (!started) {
+      sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getDefaultView());
+      Input(mousePosition);
+    }
+
+    // maintain consistent generation speed
+    if (generation_time > max_generation_time) {
       if (running) {
         Update(delta.asMilliseconds());
       }
-      Draw(window);
-      frame_time = 0;
+
+      generation_time = 0;
     }
+
+    Draw(window);
 
   }
 }
