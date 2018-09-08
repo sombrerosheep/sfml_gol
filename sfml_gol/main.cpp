@@ -130,7 +130,7 @@ Neighbors getNeighbors(sf::Vector2f coords) {
 
 void Input(sf::Vector2f mouse_position) {
   if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-    if (mouse_position.x < 0 || mouse_position.x > width || mouse_position.y < 0 || mouse_position.y > height) {
+    if (mouse_position.x < 0 || mouse_position.x > width - 1 || mouse_position.y < 0 || mouse_position.y > height - 1) {
       return;
     }
 
