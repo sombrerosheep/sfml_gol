@@ -237,7 +237,9 @@ void init() {
     grid_vert_lines[i + 1].position = sf::Vector2f(i * (tile_size / 2), height);
     grid_vert_lines[i + 1].color = GRID_COLOR;
   }
+}
 
+void initBoard() {
   // clear the gameboard
   for (int i = 0; i < game_board.size(); i++) {
     game_board[i] = {};
@@ -272,12 +274,13 @@ void init() {
   }
 }
   
-void main(char** argv, int arg) {
-  sf::RenderWindow window(sf::VideoMode(width, height), "Hello");
+void main(int argc, char** argv) {
+  sf::RenderWindow window(sf::VideoMode(width, height), "Conway's Game of Life");
   sf::Clock gameClock;
   sf::Event event;
 
   init();
+  initBoard();
 
   while (window.isOpen()) {
 
@@ -312,6 +315,11 @@ void main(char** argv, int arg) {
           if (generations_per_sec < 1) {
             generations_per_sec = 1;
           }
+        }
+        else if (event.key.code == sf::Keyboard::R) {
+          started = false;
+          running = false;
+          initBoard();
         }
       }
     }
